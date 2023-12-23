@@ -1,0 +1,61 @@
+while wait() do
+                    if game.Players.LocalPlayer.Character and
+                            game.Players.LocalPlayer.Character:FindFirstChild('HumanoidRootPart') and
+                            game.Players.LocalPlayer.Character.HumanoidRootPart:FindFirstChild('BodyVelocity') then
+                    else
+                        local BV = Instance.new('BodyVelocity', game.Players.LocalPlayer.Character.HumanoidRootPart)
+                        BV.velocity = Vector3.new(0, 0, 0)
+                        BV.maxForce = Vector3.new(9e9, 9e9, 9e9)
+                    end
+
+                    local workspace = game:GetService("Workspace")
+                    local ParentNameOfCoinContainer = ""
+
+                    for _, child in ipairs(game.Workspace.CoinContainer:GetChildren()) do
+                        if child:IsA("Model") then
+                            local coinContainer = child:FindFirstChild("Coin")
+                            if coinContainer then
+                                ParentNameOfCoinContainer = coinContainer.Parent.Name
+                            end
+                        end
+                    end
+
+                    local humanoid = game:GetService("Players").LocalPlayer.Character.Humanoid
+                    local coins = workspace.CoinContainer:FindFirstChild(ParentNameOfCoinContainer):GetChildren()
+                    local closestCoin = nil
+                    local closestDistance = math.huge
+
+                    for _, coin in ipairs(coins) do
+                        if coin.Name == "Coin_Server" then
+                            local distance = (coin.Position - humanoid.RootPart.Position).Magnitude
+                            if distance < closestDistance and distance <= 40 then
+                                closestCoin = coin
+                                closestDistance = distance
+                            end
+                        end
+                    end
+
+                    if closestCoin then
+                        local speed = closestDistance <= 40 and 9999999999999
+                        local tweenInfo = TweenInfo.new(0.1, Enum.EasingStyle.Linear)
+
+                        local targetPosition = closestCoin.CFrame.Position - Vector3.new(0, 0, 0)
+
+                        local tween = game:GetService("TweenService"):Create(humanoid.RootPart, tweenInfo, { CFrame = CFrame.new(targetPosition) })
+                        tween:Play()
+                        tween.Completed:wait()
+                        CoinLastPosition = closestCoin.Position
+
+                        local player = game.Players.LocalPlayer
+                        local character = player.Character or player.CharacterAdded:Wait()
+
+                        local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+                        local currentPosition = humanoidRootPart.Position
+
+                        local newPosition = currentPosition + Vector3.new(0, -5, 0)
+
+                        humanoidRootPart.CFrame = CFrame.new(newPosition)
+
+                        closestCoin:Destroy()
+                    end
+end
